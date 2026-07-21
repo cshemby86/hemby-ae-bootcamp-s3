@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import {
-  List, ListItem, ListItemText, IconButton, Checkbox, Typography, Box, CircularProgress, Paper, Chip
+  List, ListItem, ListItemText, IconButton, Checkbox, Typography, Box, CircularProgress, Paper, Chip, ButtonBase
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import EventIcon from '@mui/icons-material/Event';
+
+// Priority selector color codes (from UI sketch)
+const PRIORITY_UNSELECTED_COLOR = '#7A7A7A';
+const PRIORITY_SELECTED_COLOR = '#07F2E6';
+const PRIORITY_OPTIONS = ['P1', 'P2', 'P3'];
 
 function TaskList({ onEdit }) {
   const [tasks, setTasks] = useState([]);
@@ -61,6 +66,20 @@ function TaskList({ onEdit }) {
       fetchTasks();
     } catch (err) {
       setError('Failed to delete task');
+    }
+  };
+
+  const handleSetPriority = async (task, priority) => {
+    if (task.priority === priority) return;
+    try {
+      await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priority })
+      });
+      fetchTasks();
+    } catch (err) {
+      setError('Failed to update priority');
     }
   };
 
@@ -127,7 +146,7 @@ function TaskList({ onEdit }) {
           <ListItem 
             key={task.id} 
             sx={{ 
-              pr: 18,
+              pr: 26,
               py: 1,
               mb: 1,
               borderRadius: 2,
@@ -203,6 +222,38 @@ function TaskList({ onEdit }) {
                 gap: 1
               }}
             >
+              <Box
+                role="radiogroup"
+                aria-label="Task priority"
+                sx={{ display: 'flex', gap: 0.5 }}
+              >
+                {PRIORITY_OPTIONS.map((option) => {
+                  const isSelected = (task.priority || 'P3') === option;
+                  return (
+                    <ButtonBase
+                      key={option}
+                      role="radio"
+                      aria-checked={isSelected}
+                      aria-label={`Set priority ${option}`}
+                      data-testid={`priority-${task.id}-${option}`}
+                      onClick={() => handleSetPriority(task, option)}
+                      sx={{
+                        minWidth: 28,
+                        height: 20,
+                        px: 0.75,
+                        borderRadius: 1,
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        color: isSelected ? '#212121' : '#ffffff',
+                        backgroundColor: isSelected ? PRIORITY_SELECTED_COLOR : PRIORITY_UNSELECTED_COLOR,
+                        transition: 'background-color 0.2s ease-in-out',
+                      }}
+                    >
+                      {option}
+                    </ButtonBase>
+                  );
+                })}
+              </Box>
               {task.due_date && (
                 <Chip
                   icon={<EventIcon sx={{ fontSize: 14 }} />}

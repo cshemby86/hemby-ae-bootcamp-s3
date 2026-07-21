@@ -12,8 +12,8 @@ const server = setupServer(
     return res(
       ctx.status(200),
       ctx.json([
-        { id: 1, title: 'Test Task 1', description: 'Desc 1', due_date: '2025-09-30', completed: 0 },
-        { id: 2, title: 'Test Task 2', description: 'Desc 2', due_date: '2025-10-01', completed: 1 },
+        { id: 1, title: 'Test Task 1', description: 'Desc 1', due_date: '2025-09-30', completed: 0, priority: 'P3' },
+        { id: 2, title: 'Test Task 2', description: 'Desc 2', due_date: '2025-10-01', completed: 1, priority: 'P1' },
       ])
     );
   }),
@@ -51,7 +51,11 @@ const server = setupServer(
   rest.patch('/api/tasks/:id', (req, res, ctx) => {
     return res(
       ctx.status(200),
-      ctx.json({ id: Number(req.params.id), completed: req.body.completed ? 1 : 0 })
+      ctx.json({
+        id: Number(req.params.id),
+        completed: req.body.completed ? 1 : 0,
+        priority: req.body.priority || 'P3',
+      })
     );
   }),
 
@@ -148,6 +152,34 @@ describe('TODO App', () => {
     });
     await waitFor(() => {
       expect(screen.getByText('No tasks found.')).toBeInTheDocument();
+    });
+  });
+
+  test('updates a task priority when a priority option is clicked', async () => {
+    let tasks = [
+      { id: 1, title: 'Test Task 1', description: 'Desc 1', due_date: '2025-09-30', completed: 0, priority: 'P3' },
+    ];
+    server.use(
+      rest.get('/api/tasks', (req, res, ctx) => {
+        return res(ctx.status(200), ctx.json(tasks));
+      }),
+      rest.patch('/api/tasks/:id', (req, res, ctx) => {
+        tasks = tasks.map((task) =>
+          task.id === Number(req.params.id) ? { ...task, priority: req.body.priority } : task
+        );
+        return res(ctx.status(200), ctx.json(tasks[0]));
+      })
+    );
+    const user = userEvent.setup();
+    await act(async () => {
+      render(<App />);
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Test Task 1')).toBeInTheDocument();
+    });
+    await user.click(screen.getByTestId('priority-1-P1'));
+    await waitFor(() => {
+      expect(screen.getByTestId('priority-1-P1')).toHaveAttribute('aria-checked', 'true');
     });
   });
 });
