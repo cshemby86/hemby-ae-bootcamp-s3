@@ -6,9 +6,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import EventIcon from '@mui/icons-material/Event';
 
-// Priority selector color codes (from UI sketch)
-const PRIORITY_UNSELECTED_COLOR = '#7A7A7A';
-const PRIORITY_SELECTED_COLOR = '#07F2E6';
+// Priority selector options; colors are defined in App.css (.priority-option--selected / --unselected)
 const PRIORITY_OPTIONS = ['P1', 'P2', 'P3'];
 
 function TaskList({ onEdit }) {
@@ -237,6 +235,7 @@ function TaskList({ onEdit }) {
                       aria-label={`Set priority ${option}`}
                       data-testid={`priority-${task.id}-${option}`}
                       onClick={() => handleSetPriority(task, option)}
+                      className={isSelected ? 'priority-option--selected' : 'priority-option--unselected'}
                       sx={{
                         minWidth: 28,
                         height: 20,
@@ -245,7 +244,6 @@ function TaskList({ onEdit }) {
                         fontSize: '0.7rem',
                         fontWeight: 600,
                         color: isSelected ? '#212121' : '#ffffff',
-                        backgroundColor: isSelected ? PRIORITY_SELECTED_COLOR : PRIORITY_UNSELECTED_COLOR,
                         transition: 'background-color 0.2s ease-in-out',
                       }}
                     >
